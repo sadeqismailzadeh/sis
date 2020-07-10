@@ -87,11 +87,16 @@ show(p)
 
 # %% Find the fraction of infected nodes at the stationary state
 
-inf_stationary_list =[]
+
+list_inf =[]
 for i in range(-30, 0):
-    inf_stationary_list.append(iterations[i]["node_count"][0])
+    list_inf.append(iterations[i]["node_count"][0])
 
-mean_inf = np.mean(inf_stationary_list)
-fraction_inf = np.divide(mean_inf, num_nodes)
+list_inf = np.array(list_inf)
+list_frac_inf = np.divide(list_inf, num_nodes)
 
-print(fraction_inf)
+mean_inf_frac = np.mean(list_frac_inf)
+variance_inf_frac = np.std(list_frac_inf, axis=0)
+
+print("farction of infected nodes at stationary state is: \n {0:.5f}".format(mean_inf_frac))
+print("with standard deviation: \n {0:.5f}".format(variance_inf_frac))
