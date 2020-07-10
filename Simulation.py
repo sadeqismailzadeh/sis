@@ -119,7 +119,7 @@ mean_inf = np.mean(list_frac_inf)
 fluctuation_inf = np.std(list_frac_inf, axis=0)
 
 print("farction of infected nodes at stationary state is: {0:.5f}".format(mean_inf))
-print("with standard deviation: {0:.5f}".format(std_inf))
+print("with standard deviation: {0:.5f}".format(fluctuation_inf))
 
 # %%  plot the stationary value of infected nodes in terms of beta
 
