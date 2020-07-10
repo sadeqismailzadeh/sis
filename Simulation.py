@@ -100,3 +100,42 @@ variance_inf_frac = np.std(list_frac_inf, axis=0)
 
 print("farction of infected nodes at stationary state is: \n {0:.5f}".format(mean_inf_frac))
 print("with standard deviation: \n {0:.5f}".format(variance_inf_frac))
+
+# %%  plot the stationary value of infected nodes in terms of beta
+
+# Model selection
+
+range_beta = np.arange(0.0, 5.0, 0.5)
+list_inf_beta = []
+list_error =[]
+
+for beta in range_beta:
+    model = ep.SISModel(graph)
+    # Model Configuration
+
+    cfg = mc.Configuration()
+    cfg.add_model_parameter('beta', beta)
+    cfg.add_model_parameter('lambda', 1)
+    cfg.add_model_parameter("fraction_infected", 0.05)
+    model.set_initial_status(cfg)
+
+    # Simulation execution
+    iterations = model.iteration_bunch(500)
+
+    list_inf = []
+    for i in range(-30, 0):
+        list_inf.append(iterations[i]["node_count"][0])
+
+    list_inf = np.array(list_inf)
+    list_frac_inf = np.divide(list_inf, num_nodes)
+
+    mean_inf_frac = np.mean(list_frac_inf)
+    variance_inf_frac = np.std(list_frac_inf, axis=0)
+
+    list_inf_beta.append(mean_inf_frac)
+    list_error.append(variance_inf_frac)
+
+plt.figure(num=None, figsize=(8, 6), dpi=150, facecolor='w', edgecolor='k')
+plt.errorbar(range_beta, list_inf_beta , yerr=list_error, ecolor="red", capsize=3)
+plt.xlabel(r"beta")
+plt.ylabel(r"fraction of infected nodes at stationary")
