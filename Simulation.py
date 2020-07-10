@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jul 10 13:04:15 2020
-
-@author: Sadeq Ismailzadeh
-"""
-
-# %% Import
 import collections
 import random
 import networkx as nx
@@ -19,6 +11,10 @@ from datetime import datetime
 # to simulate sis
 import ndlib.models.ModelConfig as mc
 import ndlib.models.epidemics as ep
+
+# to plot SIS simulation results
+from bokeh.io import show
+from ndlib.viz.bokeh.DiffusionTrend import DiffusionTrend
 
 random.seed(datetime.now())
 # %% Create Scale-free graph
@@ -50,14 +46,16 @@ print("graph has {0:d} nodes and {1:d} edges".format(nx.number_of_nodes(graph),
 degree_list = [graph.degree(n) for n in graph]
 degreeCount = collections.Counter(degree_list)
 degree, counts = zip(*degreeCount.items())
+
+plt.figure(num=None, figsize=(8, 6), dpi=150, facecolor='w', edgecolor='k')
 plt.plot(degree, np.array(counts) / num_nodes, 'ro')
 
 x = np.arange(1, len(counts))
-
-plt.plot(x, np.power(x, -exp), label="f(x) = x^-" + str(exp))
+label = ("$y = x^{{{}}}$").format(-exp)
+plt.plot(x, np.power(x, -exp), label=label)
 plt.xlabel(r"Degree $k$")
 plt.xscale("log")
-plt.ylabel(r"Probability $P(k)$")
+plt.ylabel(r"$P(k)$")
 plt.yscale("log")
 plt.legend(loc="best")
 
@@ -68,28 +66,25 @@ model = ep.SISModel(graph)
 
 # Model Configuration
 cfg = mc.Configuration()
-cfg.add_model_parameter('beta', 0.5)
+cfg.add_model_parameter('beta', 0.2)
 cfg.add_model_parameter('lambda', 1)
 cfg.add_model_parameter("fraction_infected", 0.05)
 model.set_initial_status(cfg)
 
 # Simulation execution
-iterations = model.iteration_bunch(500)
+iterations = model.iteration_bunch(200)
 trends = model.build_trends(iterations)
 
-# %% plot fractions of infected and susceptible nodes in terms of time
-from bokeh.io import output_notebook, show
-from ndlib.viz.bokeh.DiffusionTrend import DiffusionTrend
+# plot fractions of infected and susceptible nodes in terms of time
+
 
 viz = DiffusionTrend(model, trends)
 p = viz.plot(width=600, height=600)
 show(p)
 
 # %% Find the fraction of infected nodes at the stationary state
-
-
 list_inf =[]
-for i in range(-30, 0):
+for i in range(-50, 0):
     list_inf.append(iterations[i]["node_count"][0])
 
 list_inf = np.array(list_inf)
