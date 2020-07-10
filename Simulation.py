@@ -6,23 +6,19 @@ Created on Fri Jul 10 13:04:15 2020
 """
 
 #%% Import
-
+import collections
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
 from networkx.utils import powerlaw_sequence
-import ndlib.models.ModelConfig as mc
-import ndlib.models.epidemics as ep
-
 
 #%% Create Scale-free graph
 num_nodes = 1000
-exp = 2.1
-
+exp = 2.2
 
 sequence=[]
 while len(sequence) < num_nodes:
-    nextval = int(nx.utils.powerlaw_sequence(1, exp)[0])
+    nextval = int(powerlaw_sequence(1, exp)[0])
     if nextval >= 2 and  nextval <= num_nodes // 2:
         sequence.append(nextval)
 
@@ -51,20 +47,40 @@ graph = graph.subgraph(largest_cc).copy()
 print("lcc graph has {0:d} nodes".format(nx.number_of_nodes(graph)))
 print("lcc graph has {0:d} edges".format(nx.number_of_edges(graph)))
 
+degree_list = [graph.degree(n) for n in graph]
+
+degreeCount = collections.Counter(degree_list)
+degree, counts = zip(*degreeCount.items())
+#degree = np.log(degree)
+#counts = np.log(counts)
+plt.plot(degree, np.array(counts)/num_nodes, 'ro')
+
+counts = np.bincount(sequence)
+x = np.arange(1, len(counts))
+
+plt.plot(x, np.power(x, -exp))
+plt.xlabel(r"Degree $k$")
+plt.xscale("log")
+plt.ylabel(r"Probability $P(k)$")
+plt.yscale("log")
+plt.legend(loc="best")
+
 #%% Run SIS simulation
+import ndlib.models.ModelConfig as mc
+import ndlib.models.epidemics as ep
 
 # Model selection
 model = ep.SISModel(graph)
 
 # Model Configuration
 cfg = mc.Configuration()
-cfg.add_model_parameter('beta', 0.01)
-cfg.add_model_parameter('lambda', 0.005)
+cfg.add_model_parameter('beta', 0.1)
+cfg.add_model_parameter('lambda', 1)
 cfg.add_model_parameter("fraction_infected", 0.05)
 model.set_initial_status(cfg)
 
 # Simulation execution
-iterations = model.iteration_bunch(1000)
+iterations = model.iteration_bunch(50)
 trends = model.build_trends(iterations)
 #%%
 from bokeh.io import output_notebook, show
