@@ -11,14 +11,18 @@ import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
 from networkx.utils import powerlaw_sequence
+import ndlib.models.ModelConfig as mc
+import ndlib.models.epidemics as ep
 
+
+#%% Create Scale-free graph
 num_nodes = 1000
 exp = 2.1
 
 
 sequence=[]
 while len(sequence) < num_nodes:
-    nextval = int(nx.utils.powerlaw_sequence(1, exp)[0]) #100 nodes, power-law exponent 2.5
+    nextval = int(nx.utils.powerlaw_sequence(1, exp)[0])
     if nextval >= 2 and  nextval <= num_nodes // 2:
         sequence.append(nextval)
 
@@ -47,4 +51,25 @@ graph = graph.subgraph(largest_cc).copy()
 print("lcc graph has {0:d} nodes".format(nx.number_of_nodes(graph)))
 print("lcc graph has {0:d} edges".format(nx.number_of_edges(graph)))
 
+#%% Run SIS simulation
 
+# Model selection
+model = ep.SISModel(graph)
+
+# Model Configuration
+cfg = mc.Configuration()
+cfg.add_model_parameter('beta', 0.01)
+cfg.add_model_parameter('lambda', 0.005)
+cfg.add_model_parameter("fraction_infected", 0.05)
+model.set_initial_status(cfg)
+
+# Simulation execution
+iterations = model.iteration_bunch(1000)
+trends = model.build_trends(iterations)
+#%%
+from bokeh.io import output_notebook, show
+from ndlib.viz.bokeh.DiffusionTrend import DiffusionTrend
+
+viz = DiffusionTrend(model, trends)
+p = viz.plot(width=600, height=600)
+show(p)
