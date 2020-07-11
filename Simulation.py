@@ -1,15 +1,34 @@
-# tested on:
-# windows 10 x86_64 version 1909
-# python      3.7
-# -------------------
-# networkx    2.4
-# numpy       1.18.1
-# matplotlib  3.1.3
-# ndlib       5.0.2
-# bokeh       1.4.0
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:percent
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.5.1
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
+# ---
 
-# 'ndlib' can be installed using 'pip'
+# %% [markdown]
+# # SIS on Scale Free Network
+#
+# **tested on:**
+#
+# windows 10 x86_64 version 1909  
+# python      3.7  
+# networkx    2.4  
+# numpy       1.18.1  
+# matplotlib  3.1.3  
+# ndlib       5.0.2  
+# bokeh       1.4.0  
+#
+# SIS epidemic is simulated using  [ndlib](https://github.com/GiulioRossetti/ndlib)
 
+# %%
 import collections
 import random
 import networkx as nx
@@ -17,21 +36,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from networkx.utils import powerlaw_sequence   # to create power law degree sequence
 
-# Simulate SIS
-import ndlib.models.ModelConfig as mc
-import ndlib.models.epidemics as ep
-
-# plot SIS results
-from bokeh.io import show
-from ndlib.viz.bokeh.DiffusionTrend import DiffusionTrend
-
 # random number generator
 from datetime import datetime
 random.seed(datetime.now())
 
-# %% Create Scale-free graph
-num_nodes = 1000
-exp = 2.2
+# %% [markdown]
+# ## Create Scale-free graph
+
+# %%
+num_nodes = 1000  # number of nodes
+exp = 2.2         # exponent of power law distribution
 
 # random power law degree sequence
 sequence = []
@@ -66,7 +80,7 @@ print("graph has {0:d} nodes and {1:d} edges".format(nx.number_of_nodes(graph),
 degree_list = [graph.degree(n) for n in graph]
 degreeCount = collections.Counter(degree_list)
 degree, counts = zip(*degreeCount.items())
-plt.figure(num=None, figsize=(8, 6), dpi=150, facecolor='w', edgecolor='k')
+plt.figure(num=None, dpi=100, facecolor='w', edgecolor='k')
 plt.plot(degree, np.array(counts) / num_nodes, 'ro')
 
 # plot y = x^(-exp) to compare it to our data
@@ -81,8 +95,27 @@ plt.ylabel(r"$P(k)$")
 plt.yscale("log")
 plt.legend(loc="best")
 plt.title(r"degree distribution")
-# %% Run SIS simulation
+# %% [markdown]
+# ## Run SIS simulation
 
+# %%
+# Simulate SIS
+import ndlib.models.ModelConfig as mc
+import ndlib.models.epidemics as ep
+
+# plot SIS results
+from bokeh.io import show, output_notebook
+from ndlib.viz.bokeh.DiffusionTrend import DiffusionTrend
+
+# %%
+# to display SIS results plot inline in noteboook
+output_notebook() 
+
+# %% [markdown]
+# ### a) Plot fractions of infected and susceptible nodes in terms of time
+# for infection rate $\beta = 0.1$ and recovery rate $\mu = 1$
+
+# %%
 # Model selection
 model = ep.SISModel(graph)
 
@@ -102,8 +135,10 @@ viz = DiffusionTrend(model, trends)
 p = viz.plot(width=600, height=600)
 show(p)
 
-# %% Find the fraction of infected nodes at the stationary state
+# %% [markdown]
+# ### b) Find the fraction of infected nodes at the stationary state
 
+# %%
 # list of number of infected nodes in last 30 iterations
 list_num_inf =[]
 for i in range(-30, 0):
@@ -121,8 +156,10 @@ fluctuation_inf = np.std(list_frac_inf, axis=0)
 print("farction of infected nodes at stationary state is: {0:.5f}".format(mean_inf))
 print("with standard deviation: {0:.5f}".format(fluctuation_inf))
 
-# %%  plot the stationary value of infected nodes in terms of beta
+# %% [markdown]
+# ### c) plot the stationary value of infected nodes in terms of beta
 
+# %%
 range_beta = np.arange(0.0, 0.5, 0.02)
 inf_vs_beta = []    # inf fraction vs beta
 fluctuation_vs_beta =[]
@@ -161,7 +198,9 @@ for beta in range_beta:
     fluctuation_vs_beta.append(fluctuation_inf)
 
 # plot inf fraction vs beta with fluctuations
-plt.figure(num=None, figsize=(8, 6), dpi=150, facecolor='w', edgecolor='k')
+plt.figure(num=None, dpi=100, facecolor='w', edgecolor='k')
 plt.errorbar(range_beta, inf_vs_beta , yerr=fluctuation_vs_beta, ecolor="red", capsize=3)
 plt.xlabel(r"beta")
 plt.ylabel(r"fraction infected at stationary")
+
+# %%
